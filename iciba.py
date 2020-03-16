@@ -118,7 +118,7 @@ def get_all_By_one_word(word):
         cnt = cnt + 1
         # print(cnt)
         # print(li.css('li::text').get())
-        if cnt == 1 or cnt == 10:
+        if cnt == 1 or cnt == 2 or cnt == 10:
             # english_instance = english_instance + li.css('li::text').get() + '\n'
             english_instance.append(li.css('li::text').get())
         elif cnt > 10:
@@ -127,7 +127,7 @@ def get_all_By_one_word(word):
     for p in chinese_instance_s:
         cnt = cnt + 1
         # print(cnt)
-        if cnt == 1 or cnt == 10:
+        if cnt == 1 or cnt == 2 or cnt == 10:
             # print(p.css('p::text').get())
             # chinese_instance = chinese_instance +  + '\n'
             chinese_instance.append(p.css('p::text').get())
@@ -137,14 +137,32 @@ def get_all_By_one_word(word):
     # print(english_instance)
     # print("中文例句：")
     # print(chinese_instance)
-    chineseInstance1 = chinese_instance[0]
-    chineseInstance2 = chinese_instance[1]
-    englishInstance1 = english_instance[0]
-    englishInstance2 = english_instance[1]
+    chineseInstance2 = ""
+    chineseInstance1 = ""
+    englishInstance2 = ""
+    englishInstance1 = ""
+    """获取到的例句可能不够或者没有"""
+    if len(chinese_instance) > 2:
+        chineseInstance2 = chinese_instance[2]
+        chineseInstance1 = chinese_instance[1]
+    elif len(chinese_instance) > 1:
+        chineseInstance2 = chinese_instance[1]
+        chineseInstance1 = chinese_instance[0]
+    elif len(chinese_instance) > 0:
+        chineseInstance1 = chinese_instance[0]
+
+    if len(english_instance) > 2:
+        englishInstance2 = english_instance[2]
+        englishInstance1 = english_instance[1]
+    if len(english_instance) > 1:
+        englishInstance2 = english_instance[1]
+        englishInstance1 = english_instance[0]
+    if len(english_instance) > 0:
+        englishInstance1 = english_instance[0]
 
     res = [wordId, englishWord, pa, chineseWord, englishInstance1, chineseInstance1, englishInstance2, chineseInstance2
-        , 0, pron,'']
-    print(res)
+        , 0, pron, '']
+    # print(res)
     return res
 
 
@@ -157,13 +175,37 @@ def get_all_By_one_word(word):
 
 def get_words_list(words):
     wordsList = []
+
     for i in words:
-        wordsList.append(get_all_By_one_word(i))
+        """存在一次爬取未爬取到的情况，再次进行爬取"""
+        cnt = 0
+        p = get_all_By_one_word(i)
+        while p[2] == "" and p[3] == "" and cnt < 2:
+            p = get_all_By_one_word(i)
+            cnt = cnt + 1
+        print(p)
+        wordsList.append(p)
     return wordsList
 
 
 """将信息写入新的csv【"wordId","englishWord","pa","chineseWord","englishInstance1","chineseInstance1","englishInstance2","chineseInstance2"
     ,"collect","pron","fatherId"】 """
+
+"""
+将记录单词的txt读入，组成wordlist
+"""
+
+
+def input_word_txt(url):
+    wordlist = []
+    with open(url, 'r', encoding='utf-8') as fp:
+        line = fp.readlines()
+        for l in line:
+            if l != '' and l != '\n':
+                l = l.strip('\n').strip('\r').strip()
+                wordlist.append(l)
+        # print(wordlist)
+        return wordlist
 
 
 def write_into_csv(csvurl, words):
@@ -178,4 +220,7 @@ def write_into_csv(csvurl, words):
             writer.writerow(i)
 
 
-write_into_csv("test.csv", ['masterpiece', 'nice', 'great'])
+write_into_csv("derive.csv", input_word_txt('derive.txt'))
+
+
+# get_all_By_one_word('reactive')
